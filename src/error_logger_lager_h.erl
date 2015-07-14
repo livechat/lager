@@ -118,7 +118,7 @@ check_hwm(State = #state{hwm = Hwm, lasttime = Last, dropped = Drop}) ->
             %% different second, reset all counters and allow it
             case Drop > 0 of
                 true ->
-                    ?LOGFMT(warning, self(), "lager_error_logger_h dropped ~p messages in the last second that exceeded the limit of ~p messages/sec",
+                    ?LOGFMT(warning, self(), "erlang_log 0 - lager_error_logger_h dropped ~p messages in the last second that exceeded the limit of ~p messages/sec",
                         [Drop, Hwm]);
                 false ->
                     ok
@@ -153,19 +153,19 @@ log_event(Event, State) ->
                     %% gen_server terminate
                     [Name, _Msg, _State, Reason] = Args,
                     ?CRASH_LOG(Event),
-                    ?LOGFMT(error, Pid, "gen_server ~w terminated with reason: ~s",
+                    ?LOGFMT(error, Pid, "erlang_log 0 - gen_server ~w terminated with reason: ~s",
                         [Name, format_reason(Reason)]);
                 "** State machine "++_ ->
                     %% gen_fsm terminate
                     [Name, _Msg, StateName, _StateData, Reason] = Args,
                     ?CRASH_LOG(Event),
-                    ?LOGFMT(error, Pid, "gen_fsm ~w in state ~w terminated with reason: ~s",
+                    ?LOGFMT(error, Pid, "erlang_log 0 - gen_fsm ~w in state ~w terminated with reason: ~s",
                         [Name, StateName, format_reason(Reason)]);
                 "** gen_event handler"++_ ->
                     %% gen_event handler terminate
                     [ID, Name, _Msg, _State, Reason] = Args,
                     ?CRASH_LOG(Event),
-                    ?LOGFMT(error, Pid, "gen_event ~w installed in ~w terminated with reason: ~s",
+                    ?LOGFMT(error, Pid, "erlang_log 0 - gen_event ~w installed in ~w terminated with reason: ~s",
                         [ID, Name, format_reason(Reason)]);
                 "** Cowboy handler"++_ ->
                     %% Cowboy HTTP server error
@@ -174,13 +174,13 @@ log_event(Event, State) ->
                         [Module, Function, Arity, _Request, _State] ->
                             %% we only get the 5-element list when its a non-exported function
                             ?LOGFMT(error, Pid,
-                                "Cowboy handler ~p terminated with reason: call to undefined function ~p:~p/~p",
+                                "erlang_log 0 - Cowboy handler ~p terminated with reason: call to undefined function ~p:~p/~p",
                                 [Module, Module, Function, Arity]);
                         [Module, Function, Arity, _Class, Reason | Tail] ->
                             %% any other cowboy error_format list *always* ends with the stacktrace
                             StackTrace = lists:last(Tail),
                             ?LOGFMT(error, Pid,
-                                "Cowboy handler ~p terminated in ~p:~p/~p with reason: ~s",
+                                "erlang_log 0 - Cowboy handler ~p terminated in ~p:~p/~p with reason: ~s",
                                 [Module, Module, Function, Arity, format_reason({Reason, StackTrace})])
                     end;
                 "webmachine error"++_ ->
@@ -194,34 +194,34 @@ log_event(Event, State) ->
                         _ ->
                             Error
                     end,
-                    ?LOGFMT(error, Pid, "Webmachine error at path ~p : ~s", [Path, format_reason(StackTrace)]);
+                    ?LOGFMT(error, Pid, "erlang_log 0 - Webmachine error at path ~p : ~s", [Path, format_reason(StackTrace)]);
                 _ ->
                     ?CRASH_LOG(Event),
-                    ?LOGMSG(error, Pid, lager:safe_format(Fmt, Args, ?DEFAULT_TRUNCATION))
+                    ?LOGMSG(error, Pid, "erlang_log 0 - " ++ lager:safe_format(Fmt, Args, ?DEFAULT_TRUNCATION))
             end;
         {error_report, _GL, {Pid, std_error, D}} ->
             ?CRASH_LOG(Event),
-            ?LOGMSG(error, Pid, print_silly_list(D));
+            ?LOGMSG(error, Pid, "erlang_log 0 - " ++ print_silly_list(D));
         {error_report, _GL, {Pid, supervisor_report, D}} ->
             ?CRASH_LOG(Event),
             case lists:sort(D) of
                 [{errorContext, Ctx}, {offender, Off}, {reason, Reason}, {supervisor, Name}] ->
                     Offender = format_offender(Off),
                     ?LOGFMT(error, Pid,
-                        "Supervisor ~w had child ~s exit with reason ~s in context ~w",
+                        "erlang_log 0 - Supervisor ~w had child ~s exit with reason ~s in context ~w",
                         [supervisor_name(Name), Offender, format_reason(Reason), Ctx]);
                 _ ->
-                    ?LOGMSG(error, Pid, "SUPERVISOR REPORT " ++ print_silly_list(D))
+                    ?LOGMSG(error, Pid, "erlang_log 0 - SUPERVISOR REPORT " ++ print_silly_list(D))
             end;
         {error_report, _GL, {Pid, crash_report, [Self, Neighbours]}} ->
             ?CRASH_LOG(Event),
-            ?LOGMSG(error, Pid, "CRASH REPORT " ++ format_crash_report(Self, Neighbours));
+            ?LOGMSG(error, Pid, "erlang_log 0 - CRASH REPORT " ++ format_crash_report(Self, Neighbours));
         {warning_msg, _GL, {Pid, Fmt, Args}} ->
-            ?LOGMSG(warning, Pid, lager:safe_format(Fmt, Args, ?DEFAULT_TRUNCATION));
+            ?LOGMSG(warning, Pid, "erlang_log 0 - " ++ lager:safe_format(Fmt, Args, ?DEFAULT_TRUNCATION));
         {warning_report, _GL, {Pid, std_warning, Report}} ->
-            ?LOGMSG(warning, Pid, print_silly_list(Report));
+            ?LOGMSG(warning, Pid, "erlang_log 0 - " ++ print_silly_list(Report));
         {info_msg, _GL, {Pid, Fmt, Args}} ->
-            ?LOGMSG(info, Pid, lager:safe_format(Fmt, Args, ?DEFAULT_TRUNCATION));
+            ?LOGMSG(info, Pid, "erlang_log 0 - " ++ lager:safe_format(Fmt, Args, ?DEFAULT_TRUNCATION));
         {info_report, _GL, {Pid, std_info, D}} when is_list(D) ->
             Details = lists:sort(D),
             case Details of
@@ -230,14 +230,14 @@ log_event(Event, State) ->
                         {ok, true} when Reason == stopped ->
                             ok;
                         _ ->
-                            ?LOGFMT(info, Pid, "Application ~w exited with reason: ~s",
+                            ?LOGFMT(info, Pid, "erlang_log 0 - Application ~w exited with reason: ~s",
                                     [App, format_reason(Reason)])
                     end;
                 _ ->
-                    ?LOGMSG(info, Pid, print_silly_list(D))
+                    ?LOGMSG(info, Pid, "erlang_log 0 - " ++ print_silly_list(D))
             end;
         {info_report, _GL, {Pid, std_info, D}} ->
-            ?LOGFMT(info, Pid, "~w", [D]);
+            ?LOGFMT(info, Pid, "erlang_log 0 - ~w", [D]);
         {info_report, _GL, {P, progress, D}} ->
             Details = lists:sort(D),
             case Details of
@@ -246,19 +246,19 @@ log_event(Event, State) ->
                         {ok, true} ->
                             ok;
                         _ ->
-                            ?LOGFMT(info, P, "Application ~w started on node ~w",
+                            ?LOGFMT(info, P, "erlang_log 0 - Application ~w started on node ~w",
                                     [App, Node])
                     end;
                 [{started, Started}, {supervisor, Name}] ->
                     MFA = format_mfa(get_value(mfargs, Started)),
                     Pid = get_value(pid, Started),
-                    ?LOGFMT(debug, P, "Supervisor ~w started ~s at pid ~w",
+                    ?LOGFMT(debug, P, "erlang_log 0 - Supervisor ~w started ~s at pid ~w",
                         [supervisor_name(Name), MFA, Pid]);
                 _ ->
-                    ?LOGMSG(info, P, "PROGRESS REPORT " ++ print_silly_list(D))
+                    ?LOGMSG(info, P, "erlang_log 0 - PROGRESS REPORT " ++ print_silly_list(D))
             end;
         _ ->
-            ?LOGFMT(warning, self(), "Unexpected error_logger event ~w", [Event])
+            ?LOGFMT(warning, self(), "erlang_log 0 - Unexpected error_logger event ~w", [Event])
     end,
     {ok, State}.
 
