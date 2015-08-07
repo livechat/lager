@@ -252,10 +252,10 @@ log_event(Event, State) ->
                 [{started, Started}, {supervisor, Name}] ->
                     MFA = format_mfa(get_value(mfargs, Started)),
                     Pid = get_value(pid, Started),
-                    ?LOGFMT(debug, P, "erlang_log 0 - Supervisor ~w started ~s at pid ~w",
+                    ok%?LOGFMT(debug, P, "erlang_log 0 - Supervisor ~w started ~s at pid ~w",
                         [supervisor_name(Name), MFA, Pid]);
                 _ ->
-                    ?LOGMSG(info, P, "erlang_log 0 - PROGRESS REPORT " ++ print_silly_list(D))
+                    ok%?LOGMSG(info, P, "erlang_log 0 - PROGRESS REPORT " ++ print_silly_list(D))
             end;
         _ ->
             ?LOGFMT(warning, self(), "erlang_log 0 - Unexpected error_logger event ~w", [Event])
